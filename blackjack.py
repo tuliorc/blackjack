@@ -9,10 +9,13 @@ suit_dict = {
 
 
 class Player():
-    def __init__(self, name, hand, bankroll=1000):
+    def __init__(self, name, hand, isdealer=False, bankroll=1000):
         self.bankroll = bankroll
-        self.hand = hand
         self.name = name
+        self.hand = hand
+        self.isdealer = isdealer
+        if isdealer:
+            hand.cards[0].hidden = True
 
     def add_to_bankroll(self, amount):
         self.bankroll += amount
@@ -24,10 +27,13 @@ class Player():
         print("{name}'s hand: ".format(name=self.name))
         self.hand.print_cards()
 
+
 class Card():
-    def __init__(self, rank, suit):
+    def __init__(self, rank, suit, hidden=False):
         self.rank = rank
         self.suit = suit
+        self.hidden = hidden
+
         if isinstance(self.rank, int):
             # if the rank is a numeric value, points will correspond to it
             self.points = self.rank
@@ -39,8 +45,10 @@ class Card():
             self.points = 10
 
     def __str__(self):
-        return "[{suit}{rank}] ({points} points)".format(
-            suit=suit_dict[self.suit], rank=self.rank, points=self.points)
+        if not self.hidden:
+            return "[{suit}{rank}] ({points} points)".format(
+                suit=suit_dict[self.suit], rank=self.rank, points=self.points)
+        return "[???]"
 
 
 class Hand():
@@ -48,7 +56,7 @@ class Hand():
         self.cards = cards
 
     def add_card(self, card):
-        self.cards += card
+        self.cards += [card]
 
     def total_points(self):
         sum = 0
@@ -82,12 +90,26 @@ def get_card_from_deck(deck):
 
 
 deck = generate_deck()
-human = Player("Human",
-               Hand([get_card_from_deck(deck), get_card_from_deck(deck)]))
-dealer = Player("Dealer",
-                Hand([get_card_from_deck(deck), get_card_from_deck(deck)]))
+human = Player("Player1", Hand([get_card_from_deck(deck),
+                                get_card_from_deck(deck)]))
+dealer = Player("PC", Hand([get_card_from_deck(deck),
+                            get_card_from_deck(deck)]), True)
 
 human.print_hand()
 print("---------------------")
 dealer.print_hand()
+
+option_input = ""
+while not isinstance(option_input, int) or option_input not in [1, 2]:
+    try:
+        option_input = int(input("Type 1 for hitting or 2 for standing!"))
+    except:
+        continue
+    if option_input == 1:
+        human.hand.add_card(get_card_from_deck(deck))
+    elif option_input == 2:
+        pass
+    else:
+        continue
+
 # @TODO # Rule: dealer must always hit if their sum is below 17
