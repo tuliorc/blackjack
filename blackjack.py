@@ -27,6 +27,9 @@ class Player():
         print("{name}'s hand: ".format(name=self.name))
         self.hand.print_cards()
 
+    def show_all_cards(self):
+        for card in self.hand.cards:
+            card.hidden = False
 
 class Card():
     def __init__(self, rank, suit, hidden=False):
@@ -52,27 +55,29 @@ class Card():
 
 
 class Hand():
-    def __init__(self, cards):
-        self.cards = cards
+    def __init__(self, cards, type_hand):
+        self.cards = []
+        self.type_hand = type_hand
+        self.value = 0
+        self.ace = False # there is no ace in hand
+        for card in cards:
+            self.add_card(card)
 
     def add_card(self, card):
         self.cards += [card]
+        if card.rank = "ace":
+            self.ace = True
+        self.value += card.points
 
     def total_points(self):
-        sum = 0
-        for card in self.cards:
-            if card.rank is "ace":
-                # TODO: sometimes ace equals 11
-                sum += 1
-            else:
-                sum += card.points
-        return sum
-
+        # makes ace an 11 if it does not bust the hand
+        if self.ace and self.value < 12:
+            return self.value + 10
+        return self.value
+ 
     def print_cards(self):
         # calls print function for each card in hand
         print(*self.cards, sep="\n")
-
-        # @TODO # print all cards and corresponding points
 
 
 def generate_deck():
@@ -88,7 +93,40 @@ def generate_deck():
 def get_card_from_deck(deck):
     return deck.pop(random.randrange(0, len(deck)))
 
+def play_round(player, dealer):
+    option_input = None
+    while not isinstance(option_input, int) or option_input not in [1, 2]:
+        try:
+            option_input = int(
+                input("Type 1 for hitting or 2 for standing: "))
+        except:
+            continue
+        if option_input == 1:
+            player.hand.add_card(get_card_from_deck(deck))
+            while player.hand.total_points
+            is_hand_busted(player):
+                print("jogador perdeu!")
+                pass
+        elif option_input == 2:
+            dealer.show_all_cards()
+            if not is_hand_busted(dealer):
 
+            pass
+        else:
+            continue
+
+
+def is_hand_busted(player):
+    if player.isdealer and player.hand.total_points > 17:
+        # dealer cannot pass 17 points
+        return True
+    if not player.isdealer and player.hand.total_points >= 21:
+        # human player cannot go over 21 points
+        return True
+    return False
+
+
+global deck
 deck = generate_deck()
 human = Player("Player1", Hand([get_card_from_deck(deck),
                                 get_card_from_deck(deck)]))
@@ -99,17 +137,5 @@ human.print_hand()
 print("---------------------")
 dealer.print_hand()
 
-option_input = ""
-while not isinstance(option_input, int) or option_input not in [1, 2]:
-    try:
-        option_input = int(input("Type 1 for hitting or 2 for standing!"))
-    except:
-        continue
-    if option_input == 1:
-        human.hand.add_card(get_card_from_deck(deck))
-    elif option_input == 2:
-        pass
-    else:
-        continue
+play_round(human, dealer)
 
-# @TODO # Rule: dealer must always hit if their sum is below 17
