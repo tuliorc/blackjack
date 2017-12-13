@@ -9,16 +9,19 @@ suit_dict = {
 
 
 class Player():
-    def __init__(self, name, hand, isdealer=False, bankroll=1000):
+    def __init__(self, name, isdealer=False, bankroll=1000):
         self.bankroll = bankroll
         self.name = name
-        self.hand = hand
         self.isdealer = isdealer
-        if isdealer:
-            hand.cards[0].hidden = True
+        self.hand = None
 
     def add_to_bankroll(self, amount):
         self.bankroll += amount
+
+    def set_hand(self, hand):
+        self.hand = hand
+        if self.isdealer:
+            self.hand.cards[0].hidden = True
 
     def subtract_from_bankroll(self, amount):
         self.bankroll -= amount
@@ -27,10 +30,9 @@ class Player():
         print("{name}'s hand: ".format(name=self.name))
         self.hand.print_cards()
 
-    def print_bankroll(self):
-        print("Balance: ${bankroll}".format(name=self.name,
-                                                    bankroll=self.bankroll))
-
+    def get_balance(self):
+        return "Balance: ${bankroll}".format(name=self.name, 
+                                                bankroll=self.bankroll)
     def show_all_cards(self):
         for card in self.hand.cards:
             card.hidden = False
@@ -96,13 +98,18 @@ def generate_deck():
 def get_card_from_deck():
     return deck.pop(random.randrange(0, len(deck)))
 
-def hit():
+def hit(bet):
     if human.hand.total_points() <= 21:
         human.hand.add_card(get_card_from_deck())
+    human.print_hand()
     if human.hand.total_points() > 21:
         human.subtract_from_bankroll(bet)
+        print("---------------------")
+        print("Busted! Player lost ${bet}!".format(bet=bet))
+        print(human.get_balance())
+        print("---------------------")
 
-def stand():
+def stand(bet):
     dealer.show_all_cards()
     while dealer.hand.total_points() < 17:
         dealer.hand.add_card(get_card_from_deck())
@@ -110,32 +117,34 @@ def stand():
             return "dealer lost"
 
 def get_bet_input():
-    try:
-        bet_input = int(input("How much do you want to bet? "))
-        if 0 < bet_input < human.bankroll:
-            return bet
-        return None
-    except:
-        return None
-
+    while True:
+        try:
+            bet_input = int(input("How much do you want to bet? "))
+            if 0 < bet_input < human.bankroll:
+                return bet_input
+            continue
+        except:
+            continue
 
 global deck, game_is_on, human, dealer
-deck = generate_deck()
-human = Player("Player", Hand([get_card_from_deck(),
-                                get_card_from_deck()]))
-dealer = Player("Dealer", Hand([get_card_from_deck(),
-                            get_card_from_deck()]), True)
+human = Player("Player")
+dealer = Player("Dealer", isdealer=True)
 
 
 game_is_on = True
 while game_is_on and human.bankroll > 0:
+    deck = generate_deck()
+    human.set_hand(Hand([get_card_from_deck(), get_card_from_deck()]))
+    dealer.set_hand(Hand([get_card_from_deck(), get_card_from_deck()]))
+    bet = get_bet_input()
+
     print("---------------------")
     human.print_hand()
-    human.print_bankroll()
+    human.get_balance()
     print("---------------------")
     dealer.print_hand()
     print("---------------------")
-    option_input, bet_input = None, None
+    option_input = None
     while option_input not in ['s', 'h', 'q']:
         try:
             option_input = str(input("Type 'h' for hitting, " + \
@@ -146,22 +155,17 @@ while game_is_on and human.bankroll > 0:
             game_is_on = False
             break
         else:
-            bet = get_bet_input()
-            if not bet:
-                continue
-            else:
-                if option_input == 'h':
-                    hit(bet)
-                if option_input == 's':
-                    stand(bet)
-    else:
-        continue
+            if option_input == 'h':
+                hit(bet)
+                if human.hand.total_points() < 21:
+                    continue
+                else:
+                    break
+            if option_input == 's':
+                stand(bet)
 
 else:
     print("----------------------------")
     print("Game over! Hope you had fun!")
-    human.print_bankroll()
+    human.get_balance()
     print("----------------------------")
-
-
-
