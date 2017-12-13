@@ -1,4 +1,5 @@
 import random
+import os
 
 suit_dict = {
     "diamond": "♦",
@@ -7,6 +8,7 @@ suit_dict = {
     "spade": "♠"
 }
 
+global deck, game_is_on, human, dealer, bet
 
 class Player():
     def __init__(self, name, isdealer=False, bankroll=1000):
@@ -98,7 +100,9 @@ def generate_deck():
 def get_card_from_deck():
     return deck.pop(random.randrange(0, len(deck)))
 
-def hit(bet):
+
+def hit():
+    global bet
     if human.hand.total_points() <= 21:
         human.hand.add_card(get_card_from_deck())
     human.print_hand()
@@ -108,6 +112,8 @@ def hit(bet):
         print("Busted! Player lost ${bet}!".format(bet=bet))
         print(human.get_balance())
         print("---------------------")
+        bet = 0
+        bet = get_bet_input()
 
 def stand(bet):
     dealer.show_all_cards()
@@ -116,34 +122,42 @@ def stand(bet):
         if dealer.hand.total_points() >= 21:
             return "dealer lost"
 
+
 def get_bet_input():
-    while True:
+    while bet == 0:
         try:
             bet_input = int(input("How much do you want to bet? "))
-            if 0 < bet_input < human.bankroll:
+            if 1 < bet_input <= human.bankroll:
+                # clear console for another round
+                os.system('cls' if os.name == 'nt' else 'clear')
                 return bet_input
-            continue
-        except:
-            continue
-
-global deck, game_is_on, human, dealer
-human = Player("Player")
-dealer = Player("Dealer", isdealer=True)
+            else:
+                print("Invalid bet! You only have {amount} of balance".
+                                                format(amount=human.bankroll))
+        except ValueError:
+            print("Please type in a valid value of bet!")
 
 
-game_is_on = True
-while game_is_on and human.bankroll > 0:
-    deck = generate_deck()
-    human.set_hand(Hand([get_card_from_deck(), get_card_from_deck()]))
-    dealer.set_hand(Hand([get_card_from_deck(), get_card_from_deck()]))
-    bet = get_bet_input()
-
+def print_game_status():
     print("---------------------")
     human.print_hand()
     human.get_balance()
     print("---------------------")
     dealer.print_hand()
     print("---------------------")
+
+
+game_is_on = True
+bet = 0
+human = Player("Player")
+dealer = Player("Dealer", isdealer=True)
+
+while game_is_on and human.bankroll > 0:
+    bet = get_bet_input()
+    deck = generate_deck()
+    human.set_hand(Hand([get_card_from_deck(), get_card_from_deck()]))
+    dealer.set_hand(Hand([get_card_from_deck(), get_card_from_deck()]))
+    print_game_status()
     option_input = None
     while option_input not in ['s', 'h', 'q']:
         try:
@@ -156,13 +170,11 @@ while game_is_on and human.bankroll > 0:
             break
         else:
             if option_input == 'h':
-                hit(bet)
-                if human.hand.total_points() < 21:
-                    continue
-                else:
-                    break
+                hit()
             if option_input == 's':
-                stand(bet)
+                stand()
+            option_input = None
+            continue
 
 else:
     print("----------------------------")
