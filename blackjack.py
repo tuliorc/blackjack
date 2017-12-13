@@ -28,7 +28,7 @@ class Player():
         self.hand.print_cards()
 
     def print_bankroll(self):
-        print("{name}'s money: {bankroll}".format(name=self.name, 
+        print("Balance: ${bankroll}".format(name=self.name,
                                                     bankroll=self.bankroll))
 
     def show_all_cards(self):
@@ -53,7 +53,7 @@ class Card():
 
     def __str__(self):
         if not self.hidden:
-            return "[{suit}{rank}]".format(suit=suit_dict[self.suit], 
+            return "[{suit}{rank}]".format(suit=suit_dict[self.suit],
                                            rank=self.rank)
         return "[???]"
 
@@ -77,10 +77,10 @@ class Hand():
         if self.ace and self.value < 12:
             return self.value + 10
         return self.value
- 
+
     def print_cards(self):
         # calls print function for each card in hand
-        print(*self.cards, sep="\n")
+        print(*self.cards)
 
 
 def generate_deck():
@@ -111,7 +111,7 @@ def stand():
 
 def get_bet_input():
     try:
-        bet_input = int(input("How much do you want to bet?"))
+        bet_input = int(input("How much do you want to bet? "))
         if 0 < bet_input < human.bankroll:
             return bet
         return None
@@ -121,18 +121,20 @@ def get_bet_input():
 
 global deck, game_is_on, human, dealer
 deck = generate_deck()
-human = Player("Player1", Hand([get_card_from_deck(),
+human = Player("Player", Hand([get_card_from_deck(),
                                 get_card_from_deck()]))
-dealer = Player("PC", Hand([get_card_from_deck(),
+dealer = Player("Dealer", Hand([get_card_from_deck(),
                             get_card_from_deck()]), True)
 
 
 game_is_on = True
 while game_is_on and human.bankroll > 0:
+    print("---------------------")
     human.print_hand()
     human.print_bankroll()
     print("---------------------")
     dealer.print_hand()
+    print("---------------------")
     option_input, bet_input = None, None
     while option_input not in ['s', 'h', 'q']:
         try:
@@ -158,5 +160,8 @@ while game_is_on and human.bankroll > 0:
 else:
     print("----------------------------")
     print("Game over! Hope you had fun!")
-    print(human.print_bankroll())
+    human.print_bankroll()
     print("----------------------------")
+
+
+
