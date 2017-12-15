@@ -8,39 +8,6 @@ suit_dict = {
     "spade": "♠"
 }
 
-global deck, game_is_on, human, dealer, bet
-
-
-class Player:
-    def __init__(self, name, isdealer=False, bankroll=1000):
-        self.bankroll = bankroll
-        self.name = name
-        self.isdealer = isdealer
-        self.hand = None
-
-    def add_to_bankroll(self, amount):
-        self.bankroll += amount
-
-    def set_hand(self, hand):
-        self.hand = hand
-        if self.isdealer:
-            self.hand.cards[0].hidden = True
-
-    def subtract_from_bankroll(self, amount):
-        self.bankroll -= amount
-
-    def print_hand(self):
-        print("{name}'s hand: ".format(name=self.name))
-        self.hand.print_cards()
-
-    def get_balance(self):
-        return "Balance: ${bankroll}".format(name=self.name, 
-                                                bankroll=self.bankroll)
-
-    def show_all_cards(self):
-        for card in self.hand.cards:
-            card.hidden = False
-
 
 class Card:
     def __init__(self, rank, suit, hidden=False):
@@ -59,19 +26,15 @@ class Card:
             self.points = 10
 
     def __str__(self):
-        if not self.hidden:
-            return "[{suit}{rank}]".format(suit=suit_dict[self.suit],
-                                           rank=self.rank)
-        return "[???]"
+        return "[{suit}{rank}]".format(suit=suit_dict[self.suit],
+                                       rank=self.rank)
 
 
 class Hand:
-    def __init__(self, cards):
+    def __init__(self):
         self.cards = []
         self.value = 0
         self.ace = False # there is no ace in hand
-        for card in cards:
-            self.add_card(card)
 
     def add_card(self, card):
         self.cards += [card]
@@ -89,99 +52,135 @@ class Hand:
         # calls print function for each card in hand
         print(*self.cards)
 
+    def show_all_cards(self, hidden=False):
+        if hidden:
+            initial_card = 1
+            print("[???]")
+        else:
+            initial_card = 0
+        for x in range(initial_card, len(self.cards)):
+            print(self.cards[x])
 
-def generate_deck():
-    suits = ['club', 'diamond', 'heart', 'spade']
-    ranks = ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king']
-    cards = []
-    for suit in suits:
-        for rank in ranks:
-            cards += [Card(rank, suit)]
-    return cards
 
+class Deck:
 
-def get_card_from_deck():
-    return deck.pop(random.randrange(0, len(deck)))
+    def __init__(self):
+        self.suits = ['club', 'diamond', 'heart', 'spade']
+        self.ranks = ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king']
+        self.cards = []
+        for suit in self.suits:
+            for rank in self.ranks:
+                self.cards += [Card(rank, suit)]
+
+    def get_card(self):
+        return self.cards.pop(random.randrange(0, len(self.cards)))
 
 
 def hit():
-    global bet
-    if human.hand.total_points() <= 21:
-        human.hand.add_card(get_card_from_deck())
-    human.print_hand()
-    if human.hand.total_points() > 21:
-        human.subtract_from_bankroll(bet)
+    global bet, bankroll, deck, player_hand
+    if player_hand.total_points() <= 21:
+        player_hand.add_card(deck.get_card())
+        print_game_status()
+    if player_hand.total_points() > 21:
+        bankroll -= bet
         print("---------------------")
         print("Busted! Player lost ${bet}!".format(bet=bet))
-        print(human.get_balance())
+        print("Player's balance is ${bankroll}".format(bankroll=bankroll))
         print("---------------------")
-        bet = 0
-        bet = get_bet_input()
+        start_new_round()
 
 
 def stand():
-    dealer.show_all_cards()
-    while dealer.hand.total_points() < 17:
-        dealer.hand.add_card(get_card_from_deck())
-        if dealer.hand.total_points() >= 21:
-            return "dealer lost"
+    pass
 
 
 def get_bet_input():
+    global bet, bankroll
+    bet = 0
     while bet == 0:
         try:
             bet_input = int(input("How much do you want to bet? "))
-            if 1 < bet_input <= human.bankroll:
+            if 1 <= bet_input <= bankroll:
                 # clear console for another round
                 os.system('cls' if os.name == 'nt' else 'clear')
                 return bet_input
             else:
-                print("Invalid bet! You only have {amount} of balance".
-                                                format(amount=human.bankroll))
+                print("Invalid bet! You only have {amount} of balance"
+                      .format(amount=bankroll))
         except ValueError:
             print("Please type in a valid value of bet!")
 
 
+def get_initial_balance():
+    global initial_balance
+    initial_balance = 0
+    while initial_balance <= 0:
+        try:
+            initial_balance = int(input("Type in your initial balance: "))
+        except ValueError:
+            continue
+    return initial_balance
+
+
 def print_game_status():
     print("---------------------")
-    human.print_hand()
-    human.get_balance()
+    print("Dealer's hand:")
+    dealer_hand.show_all_cards(True)
     print("---------------------")
-    dealer.print_hand()
+    print("Player's hand:")
+    player_hand.show_all_cards(False)
     print("---------------------")
 
 
-game_is_on = True
-bet = 0
-human = Player("Player")
-dealer = Player("Dealer", isdealer=True)
-
-while game_is_on and human.bankroll > 0:
-    bet = get_bet_input()
-    deck = generate_deck()
-    human.set_hand(Hand([get_card_from_deck(), get_card_from_deck()]))
-    dealer.set_hand(Hand([get_card_from_deck(), get_card_from_deck()]))
-    print_game_status()
-    option_input = None
-    while option_input not in ['s', 'h', 'q']:
-        try:
-            option_input = str(input("Type 'h' for hitting, " + \
-                                 "'s' for standing or 'q' for quitting: "))
-        except:
-            continue
-        if option_input == 'q':
-            game_is_on = False
-            break
-        else:
-            if option_input == 'h':
-                hit()
-            if option_input == 's':
-                stand()
-            option_input = None
-            continue
-
-else:
+def exit_game():
     print("----------------------------")
     print("Game over! Hope you had fun!")
-    human.get_balance()
+    print("Balance: ${bankroll}".format(bankroll=bankroll))
     print("----------------------------")
+    exit()
+
+
+def start_new_round():
+    global bet, player_hand, dealer_hand, deck, initial_balance
+    if game_is_on and 1 <= bankroll <= initial_balance:
+        bet = 0
+        bet = get_bet_input()
+        deck = Deck()
+
+        player_hand = Hand()
+        dealer_hand = Hand()
+
+        player_hand.add_card(deck.get_card())
+        player_hand.add_card(deck.get_card())
+        dealer_hand.add_card(deck.get_card())
+        dealer_hand.add_card(deck.get_card())
+
+        print_game_status()
+
+        option_input = None
+        while option_input not in ['s', 'h', 'q']:
+            try:
+                option_input = str(input("Type 'h' for hitting, "
+                                         "'s' for standing "
+                                         "or 'q' for quitting: "))
+            except ValueError:
+                continue
+            if option_input == 'q':
+                exit_game()
+                return
+            else:
+                if option_input == 'h':
+                    hit()
+                if option_input == 's':
+                    stand()
+                option_input = None
+                continue
+
+    else:
+        exit_game()
+
+bankroll = initial_balance = get_initial_balance()
+player_hand, dealer_hand = None, None
+game_is_on = True
+bet = 0
+start_new_round()
