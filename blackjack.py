@@ -10,7 +10,8 @@ suit_dict = {
 
 global deck, game_is_on, human, dealer, bet
 
-class Player():
+
+class Player:
     def __init__(self, name, isdealer=False, bankroll=1000):
         self.bankroll = bankroll
         self.name = name
@@ -35,11 +36,13 @@ class Player():
     def get_balance(self):
         return "Balance: ${bankroll}".format(name=self.name, 
                                                 bankroll=self.bankroll)
+
     def show_all_cards(self):
         for card in self.hand.cards:
             card.hidden = False
 
-class Card():
+
+class Card:
     def __init__(self, rank, suit, hidden=False):
         self.rank = rank
         self.suit = suit
@@ -62,7 +65,7 @@ class Card():
         return "[???]"
 
 
-class Hand():
+class Hand:
     def __init__(self, cards):
         self.cards = []
         self.value = 0
@@ -115,7 +118,8 @@ def hit():
         bet = 0
         bet = get_bet_input()
 
-def stand(bet):
+
+def stand():
     dealer.show_all_cards()
     while dealer.hand.total_points() < 17:
         dealer.hand.add_card(get_card_from_deck())
