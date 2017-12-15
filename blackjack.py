@@ -1,6 +1,6 @@
 import random
 import os
-
+import time
 suit_dict = {
     "diamond": "♦",
     "club": "♣",
@@ -26,7 +26,7 @@ class Card:
             self.points = 10
 
     def __str__(self):
-        return "[{suit}{rank}]".format(suit=suit_dict[self.suit],
+        return "[{suit} {rank}]".format(suit=suit_dict[self.suit],
                                        rank=self.rank)
 
 
@@ -53,7 +53,7 @@ class Hand:
         print(*self.cards)
 
     def show_all_cards(self, hidden=False):
-        if hidden:
+        if not hidden:
             initial_card = 1
             print("[???]")
         else:
@@ -83,7 +83,6 @@ def hit():
         print_game_status()
     if player_hand.total_points() > 21:
         bankroll -= bet
-        print("---------------------")
         print("Busted! Player lost ${bet}!".format(bet=bet))
         print("Player's balance is ${bankroll}".format(bankroll=bankroll))
         print("---------------------")
@@ -91,7 +90,41 @@ def hit():
 
 
 def stand():
-    pass
+    global bankroll, bet, dealer_hand, player_hand
+
+    while dealer_hand.total_points() < 17:
+        print("Dealing cards...")
+        time.sleep(2)
+        os.system('cls' if os.name == 'nt' else 'clear')
+        dealer_hand.add_card(deck.get_card())
+        dealer_hand.show_all_cards(True)
+
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print_game_status(True)
+
+    if dealer_hand.total_points() > 21:
+        bankroll += bet
+        print("Dealer busted! Player won ${bet}!".format(bet=bet))
+        print("Player's balance is ${bankroll}".format(bankroll=bankroll))
+        print("---------------------")
+
+    elif player_hand.total_points() < dealer_hand.total_points():
+        bankroll += bet
+        print("Player's hand is better than dealer's! You won ${bet}!".format(bet=bet))
+        print("Player's balance is ${bankroll}".format(bankroll=bankroll))
+        print("---------------------")
+
+    elif player_hand.total_points() > dealer_hand.total_points():
+        bankroll -= bet
+        print("Dealer's hand is better than player's! You lost ${bet}!".format(bet=bet))
+        print("Player's balance is ${bankroll}".format(bankroll=bankroll))
+        print("---------------------")
+
+    else:
+        print("Whoops! That's a tie!")
+        print("---------------------")
+
+    start_new_round()
 
 
 def get_bet_input():
@@ -122,13 +155,13 @@ def get_initial_balance():
     return initial_balance
 
 
-def print_game_status():
+def print_game_status(dealer_can_show=False):
     print("---------------------")
     print("Dealer's hand:")
-    dealer_hand.show_all_cards(True)
+    dealer_hand.show_all_cards(dealer_can_show)
     print("---------------------")
     print("Player's hand:")
-    player_hand.show_all_cards(False)
+    player_hand.show_all_cards(True)
     print("---------------------")
 
 
@@ -142,7 +175,7 @@ def exit_game():
 
 def start_new_round():
     global bet, player_hand, dealer_hand, deck, initial_balance
-    if game_is_on and 1 <= bankroll <= initial_balance:
+    if game_is_on and bankroll >= 1:
         bet = 0
         bet = get_bet_input()
         deck = Deck()
@@ -169,6 +202,7 @@ def start_new_round():
                 exit_game()
                 return
             else:
+                os.system('cls' if os.name == 'nt' else 'clear')
                 if option_input == 'h':
                     hit()
                 if option_input == 's':
