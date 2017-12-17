@@ -54,6 +54,7 @@ class Hand:
         print(*self.cards)
 
     def show_all_cards(self, hidden=False):
+        # sometimes, dealer does not show one of his initial cards
         if not hidden:
             initial_card = 1
             print("[???]")
@@ -74,15 +75,18 @@ class Deck:
                 self.cards += [Card(rank, suit)]
 
     def get_card(self):
+        # pops a random card from deck
         return self.cards.pop(random.randrange(0, len(self.cards)))
 
 
 def hit():
     global bet, bankroll, deck, player_hand
     if player_hand.total_points() <= 21:
+        # player can only hit if his hand does not exceed 21 points
         player_hand.add_card(deck.get_card())
         print_game_status()
     if player_hand.total_points() > 21:
+        # player is busted if his hand exceeds 21 points!
         bankroll -= bet
         print("Busted! Player lost ${bet}!".format(bet=bet))
         print("Player's balance is ${bankroll}".format(bankroll=bankroll))
@@ -94,6 +98,7 @@ def stand():
     global bankroll, bet, dealer_hand, player_hand
 
     dealer_hand.show_all_cards(True)
+    # dealer keeps drawing cards until hand reaches 17 points
     while dealer_hand.total_points() < 17:
         time.sleep(2)
         dealer_hand.add_card(deck.get_card())
@@ -105,26 +110,18 @@ def stand():
 
     if dealer_hand.total_points() > 21:
         bankroll += bet
-        print("Dealer busted! Player won ${bet}!".format(bet=bet))
-        print("Player's balance is ${bankroll}".format(bankroll=bankroll))
-        print("---------------------")
-
+        print("Dealer busted! Player won ${bet}!".format(bet=bet))      
     elif player_hand.total_points() > dealer_hand.total_points():
         bankroll += bet
         print("Player's hand is better than dealer's! You won ${bet}!".format(bet=bet))
-        print("Player's balance is ${bankroll}".format(bankroll=bankroll))
-        print("---------------------")
-
     elif player_hand.total_points() < dealer_hand.total_points():
         bankroll -= bet
-        print("Dealer's hand is better than player's! You lost ${bet}!".format(bet=bet))
-        print("Player's balance is ${bankroll}".format(bankroll=bankroll))
-        print("---------------------")
-
+        print("Dealer's hand is better than player's! You lost ${bet}!".format(bet=bet))    
     else:
         print("Whoops! That's a tie!")
-        print("---------------------")
-
+        
+    print("Player's balance is ${bankroll}".format(bankroll=bankroll))
+    print("---------------------")
     start_new_round()
 
 
@@ -156,12 +153,14 @@ def get_initial_balance():
     return initial_balance
 
 
-def print_game_status(dealer_can_show=False):
+def print_game_status(can_show_all=False):
     print("---------------------")
     print("Dealer's hand:")
-    dealer_hand.show_all_cards(dealer_can_show)
+    # dealer only sometimes shows all of his cards
+    dealer_hand.show_all_cards(can_show_all)
     print("---------------------")
     print("Player's hand:")
+    # player must always show all of his cards
     player_hand.show_all_cards(True)
     print("---------------------")
 
@@ -184,6 +183,7 @@ def start_new_round():
         player_hand = Hand()
         dealer_hand = Hand()
 
+        # initially, player and dealer have only two cards in hand
         player_hand.add_card(deck.get_card())
         player_hand.add_card(deck.get_card())
         dealer_hand.add_card(deck.get_card())
