@@ -1,6 +1,7 @@
-import random
 import os
+import random
 import time
+
 suit_dict = {
     "diamond": "♦",
     "club": "♣",
@@ -92,11 +93,11 @@ def hit():
 def stand():
     global bankroll, bet, dealer_hand, player_hand
 
+    dealer_hand.show_all_cards(True)
     while dealer_hand.total_points() < 17:
-        print("Dealing cards...")
         time.sleep(2)
-        os.system('cls' if os.name == 'nt' else 'clear')
         dealer_hand.add_card(deck.get_card())
+        os.system('cls' if os.name == 'nt' else 'clear')
         dealer_hand.show_all_cards(True)
 
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -108,13 +109,13 @@ def stand():
         print("Player's balance is ${bankroll}".format(bankroll=bankroll))
         print("---------------------")
 
-    elif player_hand.total_points() < dealer_hand.total_points():
+    elif player_hand.total_points() > dealer_hand.total_points():
         bankroll += bet
         print("Player's hand is better than dealer's! You won ${bet}!".format(bet=bet))
         print("Player's balance is ${bankroll}".format(bankroll=bankroll))
         print("---------------------")
 
-    elif player_hand.total_points() > dealer_hand.total_points():
+    elif player_hand.total_points() < dealer_hand.total_points():
         bankroll -= bet
         print("Dealer's hand is better than player's! You lost ${bet}!".format(bet=bet))
         print("Player's balance is ${bankroll}".format(bankroll=bankroll))
