@@ -1,10 +1,10 @@
 # Blackjack Game
 
-This repository contains a Python blackjack game that can be played via console/terminal. 
+A python blackjack game that can be played via console/terminal
 
 ![Screenshot](blackjack-demo.png)
 
-#### How to play
+#### How to run
 
 Clone the remote repository:
 
